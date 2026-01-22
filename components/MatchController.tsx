@@ -21,7 +21,14 @@ export const MatchController: React.FC<MatchControllerProps> = ({
   return (
     <div className="flex flex-col gap-8">
       <div className="flex justify-between items-center text-center">
-        <div className="flex-1">
+        <div className="flex-1 flex flex-col items-center">
+          <div className="w-20 h-20 bg-gray-900 rounded-full border-2 border-blue-500/30 flex items-center justify-center overflow-hidden mb-3 shadow-lg">
+            {teamA.logoUrl ? (
+              <img src={teamA.logoUrl} alt={teamA.name} className="w-full h-full object-cover" />
+            ) : (
+              <span className="text-3xl">⚽</span>
+            )}
+          </div>
           <div className="text-2xl font-bold text-blue-400 mb-2">{teamA.name}</div>
           <div className="flex flex-wrap justify-center gap-1">
             {teamA.players.map(p => (
@@ -45,7 +52,14 @@ export const MatchController: React.FC<MatchControllerProps> = ({
 
         <div className="px-6 text-2xl font-black text-gray-600">VS</div>
 
-        <div className="flex-1">
+        <div className="flex-1 flex flex-col items-center">
+          <div className="w-20 h-20 bg-gray-900 rounded-full border-2 border-red-500/30 flex items-center justify-center overflow-hidden mb-3 shadow-lg">
+            {teamB.logoUrl ? (
+              <img src={teamB.logoUrl} alt={teamB.name} className="w-full h-full object-cover" />
+            ) : (
+              <span className="text-3xl">⚽</span>
+            )}
+          </div>
           <div className="text-2xl font-bold text-red-400 mb-2">{teamB.name}</div>
           <div className="flex flex-wrap justify-center gap-1">
             {teamB.players.map(p => (

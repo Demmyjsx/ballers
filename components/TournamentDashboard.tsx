@@ -29,7 +29,6 @@ export const TournamentDashboard: React.FC<DashboardProps> = ({
   const [isPaused, setIsPaused] = useState(true);
   const [newPlayersCount, setNewPlayersCount] = useState('');
   
-  // Use ReturnType<typeof setInterval> instead of NodeJS.Timeout to avoid namespace errors in browser environment
   const timerRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
   const teamA = teams.find(t => t.id === currentMatchIds?.[0]);
@@ -46,14 +45,12 @@ export const TournamentDashboard: React.FC<DashboardProps> = ({
     return () => { if (timerRef.current) clearInterval(timerRef.current); };
   }, [isPaused, timeLeft, matchStatus]);
 
-  // Auto-end match if team scores 2 goals (Golden Goal rule)
   useEffect(() => {
     if ((scoreA >= 2 || scoreB >= 2) && matchStatus === 'playing') {
       finishMatch();
     }
   }, [scoreA, scoreB, matchStatus]);
 
-  // Match ends naturally
   useEffect(() => {
     if (timeLeft === 0 && matchStatus === 'playing') {
       finishMatch();
@@ -62,14 +59,12 @@ export const TournamentDashboard: React.FC<DashboardProps> = ({
 
   const finishMatch = () => {
     setIsPaused(true);
-    const totalRemaining = queueIds.length + 2; // Queue + 2 teams on field
+    const totalRemaining = queueIds.length + 2;
 
     if (scoreA === scoreB) {
       if (totalRemaining > 3) {
-        // Draw logic for many teams: both out
         handleFinalResult('draw');
       } else {
-        // Draw logic for few teams: Tiebreakers
         setMatchStatus('penalty');
       }
     } else {
@@ -108,7 +103,6 @@ export const TournamentDashboard: React.FC<DashboardProps> = ({
 
   return (
     <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 max-w-7xl mx-auto">
-      {/* Left Column: Match Controls */}
       <div className="lg:col-span-8 space-y-6">
         <div className="bg-gray-800 rounded-2xl p-6 shadow-xl border border-gray-700">
           <div className="flex justify-between items-center mb-6">
@@ -140,7 +134,6 @@ export const TournamentDashboard: React.FC<DashboardProps> = ({
           )}
         </div>
 
-        {/* History / Previous Results */}
         <div className="bg-gray-800 rounded-2xl p-6 shadow-xl border border-gray-700">
           <h2 className="text-xl font-bold mb-4">Match History</h2>
           <div className="space-y-3 max-h-60 overflow-y-auto pr-2 custom-scrollbar">
@@ -151,11 +144,21 @@ export const TournamentDashboard: React.FC<DashboardProps> = ({
               const tB = teams.find(t => t.id === res.teamB);
               return (
                 <div key={i} className="flex justify-between items-center bg-gray-900 p-3 rounded-lg border border-gray-700">
-                  <span className={`font-semibold ${res.winner === res.teamA ? 'text-green-400' : 'text-gray-400'}`}>{tA?.name}</span>
+                  <div className="flex items-center gap-2">
+                    <div className="w-6 h-6 rounded-full bg-gray-800 flex items-center justify-center overflow-hidden border border-gray-700">
+                      {tA?.logoUrl ? <img src={tA.logoUrl} className="w-full h-full object-cover" /> : <span>⚽</span>}
+                    </div>
+                    <span className={`font-semibold ${res.winner === res.teamA ? 'text-green-400' : 'text-gray-400'}`}>{tA?.name}</span>
+                  </div>
                   <div className="bg-gray-700 px-3 py-1 rounded font-bold text-lg">
                     {res.scoreA} - {res.scoreB}
                   </div>
-                  <span className={`font-semibold ${res.winner === res.teamB ? 'text-green-400' : 'text-gray-400'}`}>{tB?.name}</span>
+                  <div className="flex items-center gap-2 text-right">
+                    <span className={`font-semibold ${res.winner === res.teamB ? 'text-green-400' : 'text-gray-400'}`}>{tB?.name}</span>
+                    <div className="w-6 h-6 rounded-full bg-gray-800 flex items-center justify-center overflow-hidden border border-gray-700">
+                      {tB?.logoUrl ? <img src={tB.logoUrl} className="w-full h-full object-cover" /> : <span>⚽</span>}
+                    </div>
+                  </div>
                 </div>
               );
             })}
@@ -163,25 +166,28 @@ export const TournamentDashboard: React.FC<DashboardProps> = ({
         </div>
       </div>
 
-      {/* Right Column: Queue & Stats */}
       <div className="lg:col-span-4 space-y-6">
-        {/* Next Up */}
         <div className="bg-gray-800 rounded-2xl p-6 shadow-xl border border-gray-700">
           <h2 className="text-xl font-bold mb-4">Queue</h2>
           <div className="space-y-2">
             {queueIds.length === 0 ? (
               <p className="text-gray-500 italic">Queue is empty.</p>
-            ) : queueIds.map((qid, idx) => (
-              <div key={idx} className="flex items-center gap-3 bg-gray-900 p-3 rounded-lg border border-gray-700 group hover:border-blue-500 transition-colors">
-                <span className="text-xs text-gray-500 font-bold">{idx + 1}</span>
-                <span className="font-medium">{teams.find(t => t.id === qid)?.name}</span>
-                <span className="ml-auto text-xs bg-gray-800 px-2 py-1 rounded text-gray-400">Waiting</span>
-              </div>
-            ))}
+            ) : queueIds.map((qid, idx) => {
+              const team = teams.find(t => t.id === qid);
+              return (
+                <div key={idx} className="flex items-center gap-3 bg-gray-900 p-3 rounded-lg border border-gray-700 group hover:border-blue-500 transition-colors">
+                  <span className="text-xs text-gray-500 font-bold">{idx + 1}</span>
+                  <div className="w-8 h-8 rounded-full bg-gray-800 flex items-center justify-center overflow-hidden border border-gray-700">
+                    {team?.logoUrl ? <img src={team.logoUrl} className="w-full h-full object-cover" /> : <span>⚽</span>}
+                  </div>
+                  <span className="font-medium">{team?.name}</span>
+                  <span className="ml-auto text-xs bg-gray-800 px-2 py-1 rounded text-gray-400">Waiting</span>
+                </div>
+              );
+            })}
           </div>
         </div>
 
-        {/* Add Players */}
         <div className="bg-gray-800 rounded-2xl p-6 shadow-xl border border-gray-700">
           <h2 className="text-xl font-bold mb-4">New Players</h2>
           <div className="flex gap-2">
@@ -207,13 +213,17 @@ export const TournamentDashboard: React.FC<DashboardProps> = ({
           </div>
         </div>
 
-        {/* Team Stats Summary */}
         <div className="bg-gray-800 rounded-2xl p-6 shadow-xl border border-gray-700">
           <h2 className="text-xl font-bold mb-4">Standings</h2>
           <div className="space-y-2">
             {[...teams].sort((a, b) => (b.wins * 3 + b.draws) - (a.wins * 3 + a.draws)).map(team => (
-              <div key={team.id} className="flex justify-between text-sm border-b border-gray-700 pb-2">
-                <span className="font-semibold">{team.name}</span>
+              <div key={team.id} className="flex justify-between items-center text-sm border-b border-gray-700 pb-2">
+                <div className="flex items-center gap-2">
+                  <div className="w-6 h-6 rounded-full bg-gray-800 flex items-center justify-center overflow-hidden border border-gray-700">
+                    {team.logoUrl ? <img src={team.logoUrl} className="w-full h-full object-cover" /> : <span>⚽</span>}
+                  </div>
+                  <span className="font-semibold">{team.name}</span>
+                </div>
                 <span className="text-gray-400">
                   <span className="text-green-400 font-bold">{team.wins}</span>W{' '}
                   <span className="text-yellow-400 font-bold">{team.draws}</span>D{' '}
@@ -225,7 +235,6 @@ export const TournamentDashboard: React.FC<DashboardProps> = ({
         </div>
       </div>
 
-      {/* Modals for Draw Scenarios */}
       {matchStatus === 'penalty' && teamA && teamB && (
         <PenaltyShootout 
           teamA={teamA}
